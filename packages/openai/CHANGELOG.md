@@ -1,5 +1,17 @@
 # @ai-sdk/openai
 
+## 3.0.138
+
+### Patch Changes
+
+- c6d995a: fix(openai): surface Chat Completions refusals as text content
+
+  The Chat Completions model ignored `message.refusal` (non-streaming) and `delta.refusal` (streaming). When the model refused to answer, `content` was `null`, so the AI SDK returned empty text with a `stop` finish reason and silently dropped the refusal. Refusal text is now emitted as text content in both `generateText` and `streamText` results, and it is emitted in addition to content when the API returns both. A refusal with a `stop` finish reason is now reported as a `content-filter` finish reason, matching the Anthropic provider and the Responses API.
+
+- c21fadf: fix(openai): handle refusal content parts in the Responses API
+
+  The Responses API returns a `refusal` content part instead of `output_text` when the model declines a request. The response schema rejected these parts, so non-streaming calls failed with an `APICallError` ("Invalid JSON response"), and streamed `response.refusal.delta` / `response.refusal.done` events were dropped, producing empty text. Refusal content parts and stream events are now parsed: the refusal explanation is surfaced as text and the finish reason is mapped to `content-filter`. When the response also contains a client-side function call, the finish reason stays `tool-calls` so the tools are still executed.
+
 ## 3.0.137
 
 ### Patch Changes
